@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"tic_tac_toe/internal/service"
 )
 
 type StartWindow struct {
@@ -15,16 +16,16 @@ func NewStartWindow(app *GameApp) *StartWindow {
 	return &StartWindow{app: app}
 }
 
-func (sw *StartWindow) ShowStartWindow() {
+func (sw *StartWindow) ShowStartWindow(gs *service.GameService) {
 	sw.window = sw.app.app.NewWindow("Крестики-нолики")
 	hello := widget.NewLabel("Выберите действие")
 	newGameButton := widget.NewButton("Новая игра", func() {
 		newGameWindow := NewNewGameWindow(sw.app)
-		newGameWindow.ShowNewGameWindow()
+		newGameWindow.ShowNewGameWindow(gs)
 	})
 	choiceGameButton := widget.NewButton("Выбрать игру по ID", func() {
 		choiceGameWindow := NewChoiceGameWindow(sw.app)
-		choiceGameWindow.ShowChoiceGameWindow()
+		choiceGameWindow.ShowChoiceGameWindow(gs)
 	})
 	newGameButton.Move(fyne.NewPos(50, 150))
 	choiceGameButton.Move(fyne.NewPos(250, 150))

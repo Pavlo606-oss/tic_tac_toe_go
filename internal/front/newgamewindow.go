@@ -1,6 +1,9 @@
 package front
 
 import (
+	"net/http"
+	"tic_tac_toe/internal/service"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -16,15 +19,23 @@ func NewNewGameWindow(app *GameApp) *NewGameWindow {
 	return &NewGameWindow{app: app}
 }
 
-func (ngw *NewGameWindow) ShowNewGameWindow() {
+func (ngw *NewGameWindow) ShowNewGameWindow(gs *service.GameService) {
 	ngw.window = ngw.app.app.NewWindow("Крестики-нолики")
 	label := widget.NewLabel("Пожалуйста, введите id для новой игры")
 	entry := widget.NewEntry()
 	entry.Resize(fyne.NewSize(200, 50))
 	entry.Move(fyne.NewPos(100, 50))
 	enterButton := widget.NewButton("Готово", func() {
+		idU128, _, _ := num.U128FromString(entry.Text)
+		if check, err := gs.Db.CheckGame(idU128); err != nil || check {
+			return
+		}
+		_, err := http.Post("http://localhost:8080/"+entry.Text, "application/json", nil)
+		if err != nil {
+			return
+		}
 		playingWindow := NewPlayingGameWindow(ngw.app)
-		playingWindow.ShowNewPlayingGameWindow(num.U128From16(1))
+		playingWindow.ShowNewPlayingGameWindow(idU128, gs)
 	})
 	enterButton.Move(fyne.NewPos(150, 150))
 	enterButton.Resize(fyne.NewSize(100, 50))

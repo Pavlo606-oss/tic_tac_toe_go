@@ -25,9 +25,12 @@ func (g *GameHandler) PostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Incorrect id", http.StatusBadRequest)
 		return
 	}
+	if check, err := g.service.Db.CheckGame(idU128); err != nil || check {
+		return
+	}
 	game := logic.NewGameLogic(idU128, 1)
 	g.service.Db.CreateGame(game)
-	g.service.M.Store(idU128, game)
+	go g.service.M.Store(idU128, &game)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 }
@@ -41,10 +44,9 @@ func (g *GameHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	game, err := g.service.Db.GetGame(idU128)
 	if err != nil {
-		http.Error(w, "Server Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	g.service.M.Store(idU128, game)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(game)

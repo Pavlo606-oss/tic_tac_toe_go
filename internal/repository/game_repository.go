@@ -58,10 +58,10 @@ func (db *GameRepository) GetGame(searchId num.U128) (*logic.GameLogic, error) {
 	var condition string
 	var player int8
 	var gameCondition [3][3]int8
-	query := "SELECT id, condition, player FROM GAMES WHERE id = $1"
+	query := "SELECT id, condition, player FROM games WHERE id = $1"
 	err := db.db.QueryRow(query, searchId.String()).Scan(&id, &condition, &player)
 	if err != nil {
-		return nil, errors.New("Id not found")
+		return nil, err
 	}
 	err = json.Unmarshal([]byte(condition), &gameCondition)
 	if err != nil {
@@ -76,6 +76,9 @@ func (db *GameRepository) CheckGame(idU128 num.U128) (bool, error) {
 	var row string
 	err := db.db.QueryRow(query, idU128.String()).Scan(&row)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
 		return false, errors.New("Incorrect type")
 	}
 	return row != "", nil

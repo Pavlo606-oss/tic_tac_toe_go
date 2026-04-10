@@ -51,6 +51,10 @@ func CheckWinnerBot(board [3][3]int8) bool {
 	return false
 }
 
+func (g *GameLogic) CheckWinner() bool {
+	return CheckWinnerBot(g.Board.Condition) || CheckWinnerPlayer(g.Board.Condition)
+}
+
 func fullBoard(board [3][3]int8) bool {
 	for _, i := range board {
 		for _, j := range i {
@@ -62,7 +66,18 @@ func fullBoard(board [3][3]int8) bool {
 	return true
 }
 
-func (g *GameLogic) MachineStep() {
+func (g *GameLogic) FullBoard() bool {
+	for _, i := range g.Board.Condition {
+		for _, j := range i {
+			if j == 0 {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (g *GameLogic) MachineStep() (int, int) {
 	copy := g.Board.Condition
 	max := struct {
 		max    int
@@ -86,6 +101,7 @@ func (g *GameLogic) MachineStep() {
 		}
 	}
 	g.Board.Condition[max.row][max.column] = -1
+	return max.row, max.column
 }
 
 func minimax(board [3][3]int8, bot bool) int {
@@ -127,4 +143,7 @@ func minimax(board [3][3]int8, bot bool) int {
 		}
 	}
 	return score
+}
+func (g *GameLogic) ChangePlayer() {
+	g.Player = -g.Player
 }

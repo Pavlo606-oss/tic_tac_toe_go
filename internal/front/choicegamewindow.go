@@ -1,6 +1,11 @@
 package front
 
 import (
+	"encoding/json"
+	"net/http"
+	"tic_tac_toe/internal/logic"
+	"tic_tac_toe/internal/service"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
@@ -16,15 +21,30 @@ func NewChoiceGameWindow(app *GameApp) *ChoiceGameWindow {
 	return &ChoiceGameWindow{app: app}
 }
 
-func (cgw *ChoiceGameWindow) ShowChoiceGameWindow() {
+func (cgw *ChoiceGameWindow) ShowChoiceGameWindow(gs *service.GameService) {
 	cgw.window = cgw.app.app.NewWindow("Крестики-нолики")
 	label := widget.NewLabel("Пожалуйста, введите id игры, которую хотите выбрать")
 	entry := widget.NewEntry()
 	entry.Resize(fyne.NewSize(200, 50))
 	entry.Move(fyne.NewPos(100, 50))
 	enterButton := widget.NewButton("Готово", func() {
+		idU128, _, _ := num.U128FromString(entry.Text)
+		if _, ok := gs.M.Load(idU128); !ok {
+			resp, err := http.Get("http://localhost:8080/" + entry.Text)
+			defer func() {
+				resp.Body.Close()
+			}()
+			if err != nil {
+				return
+			}
+			game := logic.GameLogic{}
+			if err := json.NewDecoder(resp.Body).Decode(&game); err != nil {
+				return
+			}
+			go gs.M.Store(idU128, &game)
+		}
 		playingWindow := NewPlayingGameWindow(cgw.app)
-		playingWindow.ShowNewPlayingGameWindow(num.U128From16(1))
+		playingWindow.ShowNewPlayingGameWindow(idU128, gs)
 	})
 	enterButton.Move(fyne.NewPos(150, 150))
 	enterButton.Resize(fyne.NewSize(100, 50))
