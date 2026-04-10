@@ -1,0 +1,37 @@
+package front
+
+import (
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/widget"
+	"github.com/shabbyrobe/go-num"
+)
+
+type NewGameWindow struct {
+	app    *GameApp
+	window fyne.Window
+}
+
+func NewNewGameWindow(app *GameApp) *NewGameWindow {
+	return &NewGameWindow{app: app}
+}
+
+func (ngw *NewGameWindow) ShowNewGameWindow() {
+	ngw.window = ngw.app.app.NewWindow("Крестики-нолики")
+	label := widget.NewLabel("Пожалуйста, введите id для новой игры")
+	entry := widget.NewEntry()
+	entry.Resize(fyne.NewSize(200, 50))
+	entry.Move(fyne.NewPos(100, 50))
+	enterButton := widget.NewButton("Готово", func() {
+		playingWindow := NewPlayingGameWindow(ngw.app)
+		playingWindow.ShowNewPlayingGameWindow(num.U128From16(1))
+	})
+	enterButton.Move(fyne.NewPos(150, 150))
+	enterButton.Resize(fyne.NewSize(100, 50))
+	enterButton.Resize(fyne.NewSize(100, 50))
+	label.Move(fyne.NewPos(50, 10))
+	ngw.window.SetContent(container.NewWithoutLayout(label, entry, enterButton))
+	ngw.window.Resize(fyne.Size{Width: 400, Height: 400})
+	ngw.window.SetFixedSize(true)
+	ngw.window.Show()
+}
