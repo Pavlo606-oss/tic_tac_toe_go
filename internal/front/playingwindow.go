@@ -1,10 +1,10 @@
 package front
 
 import (
-	"fmt"
 	"image/color"
 	"tic_tac_toe/internal/logic"
 	"tic_tac_toe/internal/service"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -22,12 +22,19 @@ func NewPlayingGameWindow(app *GameApp) *PlayingGameWindow {
 	return &PlayingGameWindow{app: app}
 }
 
-func ChangeLinePosition(line *canvas.Line, pos1, pos2 fyne.Position) {
-	line.Position1 = pos1
-	line.Position2 = pos2
+func WinnerName(game *logic.GameLogic) string {
+	if game.CheckWinner() {
+		switch -game.Player {
+		case 1:
+			return "Победил X!"
+		case -1:
+			return "Победил O!"
+		}
+	}
+	return "Ничья!"
 }
 
-func DrawBoard(container *fyne.Container, window *fyne.Window, idU128 num.U128, gs *service.GameService, width, height float32) {
+func DrawBoard(container *fyne.Container, window *fyne.Window, idU128 num.U128, gs *service.GameService, width, height float32, pgw *PlayingGameWindow) {
 	var x, y float32
 	for i := 0; i < 2; i++ {
 		y += 125
@@ -44,37 +51,43 @@ func DrawBoard(container *fyne.Container, window *fyne.Window, idU128 num.U128, 
 		ChangeLinePosition(line, firstPos, fyne.NewPos(x, height*0.90))
 		container.Add(line)
 	}
+	emptyInterface, _ := gs.M.Load(idU128)
+	game, _ := emptyInterface.(*logic.GameLogic)
 	var buttons [3][3]*widget.Button
-
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 3; j++ {
 			row, col := i, j
-			buttons[i][j] = widget.NewButton("", func() {
-				emptyInterface, _ := gs.M.Load(idU128)
-				game, ok := emptyInterface.(*logic.GameLogic)
-				if !ok {
-					return
-				}
-
-				if game.Player == 1 {
-					game.PlayerStep(uint8(row), uint8(col))
-					game.ChangePlayer()
-					gs.M.Store(idU128, game)
-					buttons[row][col].SetText("X")
-					container.Refresh()
+			buttons[i][j] = widget.NewButton(buttonString(game, int8(row), int8(col)), func() {
+				if game.Player == 1 && !(game.FullBoard() || game.CheckWinner()) {
+					if game.Board.Condition[row][col] == 0 {
+						game.PlayerStep(uint8(row), uint8(col))
+						buttons[row][col].SetText("X")
+						gs.Db.UpdateGame(game)
+					}
 				}
 				if !(game.FullBoard() || game.CheckWinner()) {
-					x, y := game.MachineStep()
-					buttons[x][y].SetText("O")
-					game.ChangePlayer()
+					if game.Player == -1 {
+						x, y := game.MachineStep()
+						buttons[x][y].SetText("O")
+						gs.Db.UpdateGame(game)
+					}
 					if game.FullBoard() || game.CheckWinner() {
-						(*window).Close()
+						go func() {
+							time.Sleep(2 * time.Second)
+							fyne.Do(func() {
+								ShowEndDialog(window, idU128, gs, pgw, game)
+							})
+						}()
 					}
 				} else {
-					(*window).Close()
+					go func() {
+						time.Sleep(2 * time.Second)
+						fyne.Do(func() {
+							ShowEndDialog(window, idU128, gs, pgw, game)
+						})
+					}()
 				}
 			})
-
 			buttons[i][j].Move(fyne.NewPos(float32(i)*width/3, float32(j)*height/3))
 			buttons[i][j].Resize(fyne.NewSize(width/3-3, height/3-3))
 			container.Add(buttons[i][j])
@@ -83,11 +96,9 @@ func DrawBoard(container *fyne.Container, window *fyne.Window, idU128 num.U128, 
 }
 
 func (pgw *PlayingGameWindow) ShowNewPlayingGameWindow(idU128 num.U128, gs *service.GameService) {
-	pgw.window = pgw.app.app.NewWindow(fmt.Sprintf("Игра %s", idU128.String()))
-	pgw.window.SetFixedSize(true)
-	pgw.window.Resize(fyne.Size{Width: 375, Height: 375})
+	SettingsPlayingWindow(pgw, idU128)
 	container := container.NewWithoutLayout()
-	DrawBoard(container, &pgw.window, idU128, gs, pgw.window.Canvas().Size().Width, pgw.window.Canvas().Size().Height)
+	DrawBoard(container, &pgw.window, idU128, gs, pgw.window.Canvas().Size().Width, pgw.window.Canvas().Size().Height, pgw)
 	pgw.window.SetContent(container)
 	pgw.window.Show()
 	emptyInterface, _ := gs.M.Load(idU128)
@@ -98,6 +109,6 @@ func (pgw *PlayingGameWindow) ShowNewPlayingGameWindow(idU128 num.U128, gs *serv
 		gs.M.Store(idU128, game)
 	}
 	if game.FullBoard() || game.CheckWinner() {
-		pgw.window.Close()
+		ShowEndDialog(&pgw.window, idU128, gs, pgw, game)
 	}
 }

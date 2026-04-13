@@ -30,7 +30,7 @@ func (cgw *ChoiceGameWindow) ShowChoiceGameWindow(gs *service.GameService) {
 	enterButton := widget.NewButton("Готово", func() {
 		idU128, _, _ := num.U128FromString(entry.Text)
 		if _, ok := gs.M.Load(idU128); !ok {
-			resp, err := http.Get("http://localhost:8080/" + entry.Text)
+			resp, err := http.Get("http://localhost:8080/games/" + entry.Text)
 			defer func() {
 				resp.Body.Close()
 			}()

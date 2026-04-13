@@ -18,11 +18,13 @@ func NewGameLogic(UUid num.U128, player int8) *GameLogic {
 
 func (g *GameLogic) PlayerStep(row, column uint8) {
 	g.Board.Condition[row][column] = g.Player
+	g.ChangePlayer()
 }
 
 func (g *GameLogic) EndGame() bool {
 	return CheckWinnerBot(g.Board.Condition) || CheckWinnerPlayer(g.Board.Condition) || fullBoard(g.Board.Condition)
 }
+
 func CheckWinnerPlayer(board [3][3]int8) bool {
 	for i := 0; i < 3; i++ {
 		if (board[i][0]+board[i][1]+board[i][2] == 3) ||
@@ -101,6 +103,7 @@ func (g *GameLogic) MachineStep() (int, int) {
 		}
 	}
 	g.Board.Condition[max.row][max.column] = -1
+	g.ChangePlayer()
 	return max.row, max.column
 }
 
