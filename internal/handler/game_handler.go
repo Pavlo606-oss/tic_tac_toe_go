@@ -74,8 +74,19 @@ func (g *GameHandler) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if _, ok := g.service.M.Load(idU128); ok {
-		g.service.M.Delete(idU128)
+		go g.service.M.Delete(idU128)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+}
+
+func (g *GameHandler) GetAllHandler(w http.ResponseWriter, r *http.Request) {
+	games, err := g.service.Db.GetAllGames()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(games)
 }
