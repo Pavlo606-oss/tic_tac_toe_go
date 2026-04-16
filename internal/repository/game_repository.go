@@ -83,3 +83,26 @@ func (db *GameRepository) CheckGame(idU128 num.U128) (bool, error) {
 	}
 	return row != "", nil
 }
+
+func (db *GameRepository) GetAllGames() ([]logic.GameLogic, error) {
+	query := "SELECT id, condition, player FROM Games"
+	gamesRep, err := db.db.Query(query)
+	if err != nil {
+		return nil, errors.New("Database Error")
+	}
+	defer gamesRep.Close()
+	games := make([]logic.GameLogic, 0)
+	for gamesRep.Next() {
+		var idU128String string
+		var conditionString string
+		var player int8
+		if err = gamesRep.Scan(&idU128String, &conditionString, &player); err != nil {
+			return nil, errors.New("Fail to scan data")
+		}
+		idU128, _, _ := num.U128FromString(idU128String)
+		var condition [3][3]int8
+		json.Unmarshal([]byte(conditionString), &condition)
+		games = append(games, logic.GameLogic{Player: player, UUid: idU128, Board: models.Board{Condition: condition}})
+	}
+	return games, nil
+}

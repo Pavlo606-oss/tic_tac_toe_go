@@ -39,6 +39,7 @@ func (cgw *ChoiceGameWindow) ShowChoiceGameWindow(gs *service.GameService) {
 			}
 			game := logic.GameLogic{}
 			if err := json.NewDecoder(resp.Body).Decode(&game); err != nil {
+				ShowNotExistGameDialog(cgw)
 				return
 			}
 			go gs.M.Store(idU128, &game)

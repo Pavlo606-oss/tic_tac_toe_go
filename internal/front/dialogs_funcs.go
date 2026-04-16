@@ -31,3 +31,7 @@ func ShowEndDialog(window *fyne.Window, idU128 num.U128, gs *service.GameService
 func ShowExistGameDialog(ngw *NewGameWindow) {
 	dialog.ShowInformation("Крестики-нолики", "Такая игра уже существует", ngw.window)
 }
+
+func ShowNotExistGameDialog(cgw *ChoiceGameWindow) {
+	dialog.ShowInformation("Крестики-нолики", "Такой игры не существует", cgw.window)
+}

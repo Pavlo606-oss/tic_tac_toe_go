@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"tic_tac_toe/internal/front"
 	"tic_tac_toe/internal/handler"
@@ -18,15 +17,16 @@ const BaseUrl = "localhost:8080"
 func main() {
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=Dimon007 dbname=Games sslmode=disable")
 	if err != nil {
-		fmt.Print("sosi")
+		return
 	}
 	repository := repository.NewGameRepository(db)
 	service := service.NewGameService(repository)
 	handlers := handler.NewGameHandler(service)
 	rout := chi.NewRouter()
-	rout.Post("/{id}", handlers.PostHandler)
-	rout.Get("/{id}", handlers.GetHandler)
-	rout.Delete("/{id}", handlers.DeleteHandler)
+	rout.Post("/games/{id}", handlers.PostHandler)
+	rout.Get("/games/{id}", handlers.GetHandler)
+	rout.Delete("/games/{id}", handlers.DeleteHandler)
+	rout.Get("/games", handlers.GetAllHandler)
 	go http.ListenAndServe(BaseUrl, rout)
 	a := front.NewGameApp()
 	app := front.NewStartWindow(a)
