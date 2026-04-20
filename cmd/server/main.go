@@ -15,7 +15,7 @@ import (
 const BaseUrl = "localhost:8080"
 
 func main() {
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres password=Dimon007 dbname=Games sslmode=disable")
+	db, err := sql.Open("postgres", "host=localhost port=5433 user=gamer password=gaming_pass dbname=games_db sslmode=disable")
 	if err != nil {
 		return
 	}

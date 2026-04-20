@@ -41,7 +41,6 @@ func DrawBoard(container *fyne.Container, window *fyne.Window, idU128 num.U128, 
 		line := canvas.NewLine(color.Black)
 		firstPos := fyne.NewPos(width-width*0.9, y)
 		ChangeLinePosition(line, firstPos, fyne.NewPos(width*0.9, y))
-
 		container.Add(line)
 	}
 	for j := 0; j < 2; j++ {
@@ -71,15 +70,8 @@ func DrawBoard(container *fyne.Container, window *fyne.Window, idU128 num.U128, 
 						buttons[x][y].SetText("O")
 						gs.Db.UpdateGame(game)
 					}
-					if game.FullBoard() || game.CheckWinner() {
-						go func() {
-							time.Sleep(2 * time.Second)
-							fyne.Do(func() {
-								ShowEndDialog(window, idU128, gs, pgw, game)
-							})
-						}()
-					}
-				} else {
+				}
+				if game.FullBoard() || game.CheckWinner() {
 					go func() {
 						time.Sleep(2 * time.Second)
 						fyne.Do(func() {
@@ -103,11 +95,6 @@ func (pgw *PlayingGameWindow) ShowNewPlayingGameWindow(idU128 num.U128, gs *serv
 	pgw.window.Show()
 	emptyInterface, _ := gs.M.Load(idU128)
 	game, _ := emptyInterface.(*logic.GameLogic)
-	if game.Player == -1 {
-		game.MachineStep()
-		game.ChangePlayer()
-		gs.M.Store(idU128, game)
-	}
 	if game.FullBoard() || game.CheckWinner() {
 		ShowEndDialog(&pgw.window, idU128, gs, pgw, game)
 	}
