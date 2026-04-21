@@ -2,8 +2,10 @@ DOCKER_COMPOSE=docker compose -f build/docker-compose.yml
 
 up:
 	$(DOCKER_COMPOSE) up -d
+
 play:
 	go run cmd/server/main.go
+	
 down:
 	$(DOCKER_COMPOSE) down
 

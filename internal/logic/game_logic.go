@@ -147,6 +147,7 @@ func minimax(board [3][3]int8, bot bool) int {
 	}
 	return score
 }
+
 func (g *GameLogic) ChangePlayer() {
 	g.Player = -g.Player
 }
